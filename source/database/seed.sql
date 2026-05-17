@@ -150,3 +150,5 @@ VALUES
    0,
    '{"note_id":5,"permission":"read"}',
    NOW());
+
+SET FOREIGN_KEY_CHECKS = 1;

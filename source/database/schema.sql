@@ -1,8 +1,6 @@
--- ═══════════════════════════════════════════════════════════════════════════
 -- WeaNote – Database Schema
 -- Engine : InnoDB | Charset: utf8mb4_unicode_ci
 -- Import: mysql -u root -p < database/schema.sql
--- ═══════════════════════════════════════════════════════════════════════════
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -240,6 +238,7 @@ CREATE TABLE IF NOT EXISTS `note_history` (
   KEY `idx_history_note` (`note_id`, `created_at`),
   CONSTRAINT `fk_history_note_id` FOREIGN KEY (`note_id`) REFERENCES `notes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_history_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

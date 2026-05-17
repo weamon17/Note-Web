@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// ─── Load .env (never commit .env to version control) ────────────────────────
+// ─── Load .env ────────────────────────
 (static function () {
     $envFile = dirname(__DIR__) . '/.env';
     if (!file_exists($envFile)) return;

@@ -12,13 +12,17 @@
 
 'use strict';
 
-const CACHE_VERSION = 'weanote-v3';
+const CACHE_VERSION = 'weanote-v4';
 const OFFLINE_URL   = './offline.html';
 
 const STATIC_ASSETS = [
     './',
     './offline.html',
     './manifest.json',
+    './assets/vendor/css/fonts.css',
+    './assets/vendor/css/bootstrap.min.css',
+    './assets/vendor/css/bootstrap-icons.min.css',
+    './assets/vendor/js/bootstrap.bundle.min.js',
     './assets/css/app.css',
     './assets/js/app.js',
     './assets/js/offline.js',

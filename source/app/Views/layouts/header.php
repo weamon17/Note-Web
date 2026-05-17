@@ -29,11 +29,6 @@ $applyNoteColor = $noteColor !== '#ffffff' && preg_match('/^#[0-9a-fA-F]{6}$/i',
   <meta name="base-url"   content="<?= htmlspecialchars(BASE_URL) ?>">
   <title><?= $pageTitle ?></title>
 
-  <!-- Google Fonts: Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-
   <!-- Favicon -->
   <link rel="icon" href="<?= BASE_URL ?>/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="<?= BASE_URL ?>/assets/images/icon-192.png" sizes="192x192" type="image/png">
@@ -46,14 +41,12 @@ $applyNoteColor = $noteColor !== '#ffffff' && preg_match('/^#[0-9a-fA-F]{6}$/i',
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="<?= APP_NAME ?>">
 
-  <!-- Bootstrap 5 -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Fonts (local) -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/vendor/css/fonts.css">
+  <!-- Bootstrap 5 (local) -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/vendor/css/bootstrap.min.css">
+  <!-- Bootstrap Icons (local) -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/vendor/css/bootstrap-icons.min.css">
   <!-- App CSS -->
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css?v=<?= APP_VERSION ?>">
   <?php if ($applyNoteColor): ?>
