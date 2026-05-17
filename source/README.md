@@ -2,7 +2,7 @@
 
 > A full-featured, collaborative note-taking web application built with PHP 8.2 and vanilla JavaScript.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Railway-7C3AED?style=for-the-badge&logo=railway)](https://note-web-production.up.railway.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-InfinityFree-00A86B?style=for-the-badge&logo=internet-explorer)](https://weanote.fwh.is)
 [![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=for-the-badge&logo=mysql)](https://mysql.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap)](https://getbootstrap.com)
