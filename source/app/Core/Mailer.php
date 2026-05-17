@@ -17,27 +17,32 @@ class Mailer
         $this->configure();
     }
 
+    private static function env(string $key, string $default = ''): string
+    {
+        return (string) ($_ENV[$key] ?? (getenv($key) ?: $default));
+    }
+
     private function configure(): void
     {
         $m = $this->mail;
 
         $m->isSMTP();
-        $m->Host       = getenv('MAIL_HOST')       ?: 'smtp.mailtrap.io';
+        $m->Host       = self::env('MAIL_HOST', 'smtp.mailtrap.io');
         $m->SMTPAuth   = true;
-        $m->Username   = getenv('MAIL_USERNAME')   ?: '';
-        $m->Password   = getenv('MAIL_PASSWORD')   ?: '';
-        $m->Port       = (int)(getenv('MAIL_PORT') ?: 587);
+        $m->Username   = self::env('MAIL_USERNAME');
+        $m->Password   = self::env('MAIL_PASSWORD');
+        $m->Port       = (int) self::env('MAIL_PORT', '587');
         $m->CharSet    = 'UTF-8';
 
-        $encryption = getenv('MAIL_ENCRYPTION') ?: 'tls';
+        $encryption = self::env('MAIL_ENCRYPTION', 'tls');
         $m->SMTPSecure = match(strtolower($encryption)) {
             'ssl'   => PHPMailer::ENCRYPTION_SMTPS,
             default => PHPMailer::ENCRYPTION_STARTTLS,
         };
 
         $m->setFrom(
-            getenv('MAIL_FROM_ADDRESS') ?: 'noreply@noteflow.local',
-            getenv('MAIL_FROM_NAME')    ?: APP_NAME
+            self::env('MAIL_FROM_ADDRESS', 'noreply@weanote.app'),
+            self::env('MAIL_FROM_NAME', APP_NAME)
         );
 
         if (APP_DEBUG) {
@@ -49,10 +54,9 @@ class Mailer
 
     private function isConfigured(): bool
     {
-        $host     = getenv('MAIL_HOST')     ?: '';
-        $username = getenv('MAIL_USERNAME') ?: '';
-        $password = getenv('MAIL_PASSWORD') ?: '';
-        return $host !== '' && $username !== '' && $password !== '';
+        return self::env('MAIL_HOST')     !== ''
+            && self::env('MAIL_USERNAME') !== ''
+            && self::env('MAIL_PASSWORD') !== '';
     }
 
     // ─── Send ────────────────────────────────────────────────────────────────
