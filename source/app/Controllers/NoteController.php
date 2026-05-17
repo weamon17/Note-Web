@@ -10,6 +10,7 @@ use App\Core\Response;
 use App\Core\Upload;
 use App\Models\Label;
 use App\Models\Note;
+use App\Models\NoteHistory;
 use App\Models\NoteImage;
 use App\Models\NoteShare;
 
@@ -77,6 +78,8 @@ class NoteController extends Controller
         Auth::requireLogin();
         // Create blank note immediately so autosave has an ID from the start
         $id = (new Note())->create(Auth::id(), 'Untitled', '');
+        $u  = Auth::user();
+        (new NoteHistory())->record($id, Auth::id(), $u['display_name'] ?? 'Unknown', $u['avatar'] ?? null, 'created');
         $this->redirect('notes/' . $id);
     }
 
@@ -88,6 +91,8 @@ class NoteController extends Controller
         $title   = trim($this->post('title', 'Untitled')) ?: 'Untitled';
         $content = trim($this->post('content', ''));
         $id = (new Note())->create(Auth::id(), $title, $content);
+        $u  = Auth::user();
+        (new NoteHistory())->record($id, Auth::id(), $u['display_name'] ?? 'Unknown', $u['avatar'] ?? null, 'created');
         $this->redirect('notes/' . $id);
     }
 

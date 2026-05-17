@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\CSRF;
 use App\Core\Response;
 use App\Models\Note;
+use App\Models\NoteHistory;
 
 class NoteApiController extends Controller
 {
@@ -41,10 +42,48 @@ class NoteApiController extends Controller
 
         $noteModel->update($noteId, $title, $content);
 
+        // Record edit history (throttled to once per 5 min per user in the model)
+        $u = Auth::user();
+        (new NoteHistory())->record(
+            $noteId,
+            Auth::id(),
+            $u['display_name'] ?? 'Unknown',
+            $u['avatar'] ?? null,
+            'edited'
+        );
+
         Response::success(
             ['updated_at' => date('Y-m-d H:i:s')],
             'Saved'
         );
+    }
+
+    // ─── Edit history ─────────────────────────────────────────────────────────
+
+    public function history(string $id): void
+    {
+        Auth::requireLoginApi();
+
+        $noteId    = (int) $id;
+        $noteModel = new Note();
+        $note      = $noteModel->findAccessible($noteId, Auth::id());
+
+        if (!$note) {
+            Response::notFound('Note not found.');
+        }
+
+        $rows = (new NoteHistory())->getByNoteId($noteId);
+
+        $result = array_map(fn($r) => [
+            'id'           => (int) $r['id'],
+            'user_id'      => (int) $r['user_id'],
+            'display_name' => $r['display_name'],
+            'avatar'       => $r['avatar'],
+            'action'       => $r['action'],
+            'created_at'   => $r['created_at'],
+        ], $rows);
+
+        Response::success(['history' => $result]);
     }
 
     // ─── Offline notes snapshot ───────────────────────────────────────────────

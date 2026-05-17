@@ -86,6 +86,13 @@ require BASE_PATH . '/app/Views/layouts/sidebar.php';
           </form>
         <?php endif; ?>
 
+        <!-- History -->
+        <button class="btn btn-sm btn-outline-secondary" title="Edit history"
+                aria-label="Edit history"
+                data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas">
+          <i class="bi bi-clock-history"></i>
+        </button>
+
         <!-- Share -->
         <button class="btn btn-sm btn-outline-secondary" title="Share note"
                 aria-label="Share note"
@@ -373,6 +380,100 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = new bootstrap.Modal(modalEl);
     btn.addEventListener('click', () => modal.show());
     confirm.addEventListener('click', () => { modal.hide(); form.submit(); });
+});
+</script>
+
+<!-- ══ History Offcanvas ════════════════════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="historyOffcanvas"
+     style="width:320px" aria-labelledby="historyOffcanvasLabel">
+  <div class="offcanvas-header border-bottom">
+    <h6 class="offcanvas-title fw-semibold" id="historyOffcanvasLabel">
+      <i class="bi bi-clock-history me-2"></i>Edit History
+    </h6>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0" id="historyBody">
+    <div class="text-center text-muted py-5" id="historyLoading">
+      <span class="spinner-border spinner-border-sm"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const offcanvasEl = document.getElementById('historyOffcanvas');
+    if (!offcanvasEl) return;
+
+    let loaded = false;
+
+    offcanvasEl.addEventListener('show.bs.offcanvas', function () {
+        if (loaded) return;
+        loaded = true;
+        fetchHistory();
+    });
+
+    function fetchHistory() {
+        const noteId = window.NF_EDITOR.noteId;
+        fetch(`<?= BASE_URL ?>/api/notes/${noteId}/history`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const body = document.getElementById('historyBody');
+            if (!data.success || !data.data.history.length) {
+                body.innerHTML = '<p class="text-muted text-center small py-4">No history yet.</p>';
+                return;
+            }
+            body.innerHTML = renderHistory(data.data.history);
+        })
+        .catch(() => {
+            document.getElementById('historyBody').innerHTML =
+                '<p class="text-danger text-center small py-4">Failed to load history.</p>';
+        });
+    }
+
+    function renderHistory(rows) {
+        return '<ul class="list-unstyled mb-0">' +
+            rows.map(r => {
+                const initials = (r.display_name || '?').charAt(0).toUpperCase();
+                const avatarHtml = r.avatar
+                    ? `<img src="<?= BASE_URL ?>/uploads/avatars/${encodeURIComponent(r.avatar)}" class="rounded-circle" width="36" height="36" style="object-fit:cover" alt="">`
+                    : `<div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                            style="width:36px;height:36px;background:#6c757d;font-size:.85rem">${initials}</div>`;
+                const label = r.action === 'created' ? 'Created' : 'Edited';
+                const badgeClass = r.action === 'created' ? 'bg-success' : 'bg-primary';
+                const dt = new Date(r.created_at.replace(' ', 'T'));
+                const absolute = dt.toLocaleString();
+                const relative = timeAgo(dt);
+                return `<li class="d-flex gap-2 align-items-start px-3 py-2 border-bottom">
+                    <div class="flex-shrink-0 mt-1">${avatarHtml}</div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <span class="fw-medium text-truncate" style="max-width:140px">${escHtml(r.display_name)}</span>
+                            <span class="badge ${badgeClass} rounded-pill" style="font-size:.65rem">${label}</span>
+                        </div>
+                        <div class="text-muted small" title="${escHtml(absolute)}">${escHtml(relative)}</div>
+                    </div>
+                </li>`;
+            }).join('') +
+        '</ul>';
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function timeAgo(date) {
+        const sec = Math.round((Date.now() - date) / 1000);
+        if (sec < 60)  return 'just now';
+        const min = Math.round(sec / 60);
+        if (min < 60)  return `${min}m ago`;
+        const hr = Math.round(min / 60);
+        if (hr < 24)   return `${hr}h ago`;
+        const d = Math.round(hr / 24);
+        if (d < 7)     return `${d}d ago`;
+        return date.toLocaleDateString();
+    }
 });
 </script>
 

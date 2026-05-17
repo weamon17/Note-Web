@@ -92,6 +92,7 @@ $router->post('/preferences',          'PreferenceController@update');
 
 // ─── API (AJAX) ───────────────────────────────────────────────────────────────
 $router->post('/api/notes/{id}/autosave',  'Api/NoteApiController@autosave');
+$router->get( '/api/notes/{id}/history',   'Api/NoteApiController@history');
 $router->get( '/api/notes/search',         'Api/NoteApiController@search');
 $router->get( '/api/notes/offline',        'Api/NoteApiController@offline');
 $router->post('/api/labels',               'Api/LabelApiController@store');

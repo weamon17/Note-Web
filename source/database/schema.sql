@@ -1,17 +1,18 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- NoteFlow – Database Schema
+-- WeaNote – Database Schema
 -- Engine : InnoDB | Charset: utf8mb4_unicode_ci
+-- Import: mysql -u root -p < database/schema.sql
 -- ═══════════════════════════════════════════════════════════════════════════
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 SET TIME_ZONE = '+00:00';
 
-CREATE DATABASE IF NOT EXISTS `noteflow`
+CREATE DATABASE IF NOT EXISTS `weanote`
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE `noteflow`;
+USE `weanote`;
 
 -- ─── 1. users ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `users` (
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   -- Password reset
   `reset_token`              VARCHAR(64)      DEFAULT NULL,
   `reset_token_expires_at`   DATETIME         DEFAULT NULL,
-  `reset_otp`                VARCHAR(255)     DEFAULT NULL,  -- stores bcrypt hash of the 6-digit OTP
+  `reset_otp`                VARCHAR(255)     DEFAULT NULL,
   `reset_otp_expires_at`     DATETIME         DEFAULT NULL,
 
   `created_at`               DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,6 +76,9 @@ CREATE TABLE IF NOT EXISTS `notes` (
   `is_locked`          TINYINT(1)    NOT NULL DEFAULT 0,
   `note_password_hash` VARCHAR(255)  DEFAULT NULL,
 
+  -- Drag-to-reorder
+  `sort_order`         INT           NOT NULL DEFAULT 0,
+
   -- Soft delete
   `deleted_at`         DATETIME      DEFAULT NULL,
 
@@ -85,6 +89,7 @@ CREATE TABLE IF NOT EXISTS `notes` (
   KEY `idx_notes_user`       (`user_id`),
   KEY `idx_notes_deleted_at` (`deleted_at`),
   KEY `idx_notes_pinned`     (`user_id`, `is_pinned`),
+  KEY `idx_notes_user_sort`  (`user_id`, `sort_order`),
   FULLTEXT KEY `ft_notes_search` (`title`, `content`),
   CONSTRAINT `fk_notes_user`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -93,13 +98,16 @@ CREATE TABLE IF NOT EXISTS `notes` (
 
 -- ─── 4. note_images ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS `note_images` (
-  `id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  `note_id`       INT UNSIGNED  NOT NULL,
-  `filename`      VARCHAR(255)  NOT NULL,          -- stored filename (hashed)
-  `original_name` VARCHAR(255)  NOT NULL,          -- original upload name
-  `mime_type`     VARCHAR(100)  NOT NULL,
-  `size`          INT UNSIGNED  NOT NULL DEFAULT 0, -- bytes
-  `created_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id`            INT UNSIGNED   NOT NULL AUTO_INCREMENT,
+  `note_id`       INT UNSIGNED   NOT NULL,
+  `filename`      VARCHAR(255)   NOT NULL,
+  `original_name` VARCHAR(255)   NOT NULL,
+  `mime_type`     VARCHAR(100)   NOT NULL,
+  `size`          INT UNSIGNED   NOT NULL DEFAULT 0,
+  `x_pct`         DECIMAL(5,2)   DEFAULT NULL,
+  `y_pct`         DECIMAL(5,2)   DEFAULT NULL,
+  `sort_order`    INT            NOT NULL DEFAULT 0,
+  `created_at`    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
   KEY `idx_note_images_note` (`note_id`),
@@ -113,12 +121,12 @@ CREATE TABLE IF NOT EXISTS `labels` (
   `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   `user_id`    INT UNSIGNED  NOT NULL,
   `name`       VARCHAR(100)  NOT NULL,
-  `color`      VARCHAR(7)    NOT NULL DEFAULT '#6c757d',  -- hex color
+  `color`      VARCHAR(7)    NOT NULL DEFAULT '#6c757d',
   `created_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_labels_user_name` (`user_id`, `name`),   -- unique per user
+  UNIQUE KEY `uq_labels_user_name` (`user_id`, `name`),
   KEY `idx_labels_user` (`user_id`),
   CONSTRAINT `fk_labels_user`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -143,8 +151,8 @@ CREATE TABLE IF NOT EXISTS `note_labels` (
 CREATE TABLE IF NOT EXISTS `note_shares` (
   `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `note_id`        INT UNSIGNED NOT NULL,
-  `owner_id`       INT UNSIGNED NOT NULL,     -- note owner who shared
-  `shared_with_id` INT UNSIGNED NOT NULL,     -- recipient
+  `owner_id`       INT UNSIGNED NOT NULL,
+  `shared_with_id` INT UNSIGNED NOT NULL,
   `permission`     ENUM('read','edit') NOT NULL DEFAULT 'read',
   `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -167,15 +175,15 @@ CREATE TABLE IF NOT EXISTS `note_shares` (
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id`    INT UNSIGNED NOT NULL,
-  `type`       VARCHAR(50)  NOT NULL,              -- 'share', 'collab', etc.
+  `type`       VARCHAR(50)  NOT NULL,
   `message`    TEXT         NOT NULL,
   `is_read`    TINYINT(1)   NOT NULL DEFAULT 0,
-  `data`       JSON         DEFAULT NULL,           -- extra context
+  `data`       JSON         DEFAULT NULL,
   `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
-  KEY `idx_notif_user`     (`user_id`),
-  KEY `idx_notif_is_read`  (`user_id`, `is_read`),
+  KEY `idx_notif_user`    (`user_id`),
+  KEY `idx_notif_is_read` (`user_id`, `is_read`),
   CONSTRAINT `fk_notif_user`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -186,7 +194,7 @@ CREATE TABLE IF NOT EXISTS `collaboration_events` (
   `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `note_id`    INT UNSIGNED NOT NULL,
   `user_id`    INT UNSIGNED NOT NULL,
-  `event_type` VARCHAR(50)  NOT NULL,   -- 'edit', 'cursor', 'join', 'leave'
+  `event_type` VARCHAR(50)  NOT NULL,
   `payload`    JSON         DEFAULT NULL,
   `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -205,7 +213,7 @@ CREATE TABLE IF NOT EXISTS `collaboration_events` (
 CREATE TABLE IF NOT EXISTS `offline_queue` (
   `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id`    INT UNSIGNED NOT NULL,
-  `action`     VARCHAR(50)  NOT NULL,   -- 'create_note', 'update_note', 'delete_note'
+  `action`     VARCHAR(50)  NOT NULL,
   `payload`    JSON         NOT NULL,
   `synced_at`  DATETIME     DEFAULT NULL,
   `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -215,6 +223,23 @@ CREATE TABLE IF NOT EXISTS `offline_queue` (
   KEY `idx_offline_synced` (`user_id`, `synced_at`),
   CONSTRAINT `fk_offline_user`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ─── 11. note_history ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `note_history` (
+  `id`           INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `note_id`      INT UNSIGNED  NOT NULL,
+  `user_id`      INT UNSIGNED  NOT NULL,
+  `display_name` VARCHAR(100)  NOT NULL,
+  `avatar`       VARCHAR(255)  DEFAULT NULL,
+  `action`       ENUM('created','edited') NOT NULL DEFAULT 'edited',
+  `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_history_note` (`note_id`, `created_at`),
+  CONSTRAINT `fk_history_note_id` FOREIGN KEY (`note_id`) REFERENCES `notes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_history_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

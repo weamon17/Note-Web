@@ -1,8 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- NoteFlow – Demo Seed Data
+-- WeaNote – Demo Seed Data
 -- ─────────────────────────────────────────────────────────────────────────
 -- Import AFTER schema.sql:
---   mysql -u root -p noteflow < database/seed.sql
+--   mysql -u root -p weanote < database/seed.sql
 --
 -- OR run the PHP seeder (preferred – generates fresh bcrypt hashes):
 --   php database/seed.php
@@ -15,7 +15,7 @@
 -- Note password for "Private Thoughts": Secret123
 -- ═══════════════════════════════════════════════════════════════════════════
 
-USE `noteflow`;
+USE `weanote`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE `offline_queue`;
