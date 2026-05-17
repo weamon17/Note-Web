@@ -39,7 +39,7 @@ PWA         Service Worker + IndexedDB + Web App Manifest
 
 ## Live Demo
 
-**URL:** https://note-web-production.up.railway.app
+**URL:** https://weanote.fwh.is
 
 | Email | Password | Role |
 |-------|----------|------|
@@ -142,25 +142,28 @@ source/
 │   └── index.php          Front controller
 ├── websocket/
 │   └── server.php         Ratchet WebSocket server
-├── Dockerfile             Docker build (Railway deployment)
+├── Dockerfile             Docker build (for local/self-hosted deployment)
 ├── composer.json
 └── README.md
 ```
 
 ---
 
-## Deployment (Railway)
+## Deployment (InfinityFree)
 
-The app is deployed via Docker on Railway.app.
+The app is deployed on InfinityFree free hosting (PHP + MySQL).
 
-```dockerfile
-FROM php:8.2-cli
-RUN docker-php-ext-install pdo pdo_mysql mbstring gd fileinfo zip
-CMD php -S 0.0.0.0:${PORT:-8080} -t public/
-```
-
-Set the following environment variables in Railway:
-`APP_ENV`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `MAIL_*`
+1. Upload all contents of `source/` into `htdocs/`
+2. Create a `.env` file in `htdocs/` with DB credentials:
+   ```
+   DB_HOST=your_mysql_host
+   DB_NAME=your_db_name
+   DB_USER=your_db_user
+   DB_PASS=your_db_password
+   APP_ENV=production
+   ```
+3. Import `database/schema.sql` via phpMyAdmin (skip `CREATE DATABASE` and `USE` lines)
+4. Import `database/seed.sql` (INSERT statements only) via phpMyAdmin
 
 ---
 
