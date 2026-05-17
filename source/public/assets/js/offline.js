@@ -205,19 +205,16 @@ async function triggerSync(db) {
                             localUpdatedAt: new Date().toISOString(),
                         });
                     }
-                    // Also update the note's local copy
-                    const cached = await idbGet(db, 'notes', noteId);
-                    if (cached) {
-                        await idbPut(db, 'notes', {
-                            ...cached,
-                            title:      body.title   ?? '',
-                            content:    body.content ?? '',
-                            updated_at: new Date().toISOString(),
-                        });
-                    }
+                    // Always update the note's local copy (create entry if not cached yet)
+                    const cached = await idbGet(db, 'notes', noteId)
+                        ?? { id: noteId, is_locked: false, is_pinned: false, updated_at: '' };
+                    await idbPut(db, 'notes', {
+                        ...cached,
+                        title:      body.title   ?? '',
+                        content:    body.content ?? '',
+                        updated_at: new Date().toISOString(),
+                    });
                 } catch { /* IDB error — still return success to prevent autosave error UI */ }
-
-                setOfflineSaveStatus();
             }
             return new Response(
                 JSON.stringify({ success: true }),

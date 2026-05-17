@@ -24,19 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Status display ────────────────────────────────────────────────────────
 
     function setStatus(state) {
-        statusEl?.classList.remove('saving', 'saved', 'error');
+        statusEl?.classList.remove('saving', 'saved', 'error', 'offline');
         if (state) statusEl?.classList.add(state);
         const labels = {
-            saving: 'Saving…',
-            saved:  'Saved',
-            error:  'Failed to save',
+            saving:  'Saving…',
+            saved:   'All changes saved',
+            error:   'Failed to save',
+            offline: 'Saved offline',
         };
         const icons = {
-            saving: 'bi bi-cloud-arrow-up',
-            saved:  'bi bi-cloud-check',
-            error:  'bi bi-cloud-x',
+            saving:  'bi bi-cloud-arrow-up',
+            saved:   'bi bi-cloud-check',
+            error:   'bi bi-cloud-x',
+            offline: 'bi bi-cloud-slash',
         };
-        if (statusTxt)  statusTxt.textContent = labels[state] ?? 'Saved';
+        if (statusTxt)  statusTxt.textContent = labels[state] ?? 'All changes saved';
         if (statusIcon) statusIcon.className  = icons[state]  ?? 'bi bi-cloud-check';
     }
 
@@ -57,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (json.success) {
                 dirty = false;
-                setStatus('saved');
+                setStatus(navigator.onLine ? 'saved' : 'offline');
                 // Sync browser tab title
                 const t = title.trim() || 'Untitled';
                 const appName = document.title.split('–').pop()?.trim() || 'WeaNote';
