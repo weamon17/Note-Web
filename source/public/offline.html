@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline – WeaNote</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: #F8F7FF; color: #1e293b;
+      text-align: center; padding: 2rem;
+    }
+    .card {
+      background: #fff; border-radius: 20px; padding: 3rem 2rem;
+      box-shadow: 0 16px 48px rgba(124,58,237,.12); max-width: 400px;
+    }
+    .icon { font-size: 3rem; margin-bottom: 1rem; }
+    h1 { font-size: 1.5rem; margin-bottom: .5rem; }
+    p  { color: #64748b; margin-bottom: 1.5rem; }
+    button {
+      background: #7C3AED; color: #fff; border: none;
+      padding: .75rem 1.5rem; border-radius: 8px; font-size: 1rem;
+      cursor: pointer; font-weight: 600;
+    }
+    button:hover { background: #6D28D9; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">✦</div>
+    <h1>You're offline</h1>
+    <p>WeaNote couldn't reach the server. Your cached notes are still available.</p>
+    <button onclick="window.location.reload()">Try again</button>
+  </div>
+</body>
+</html>

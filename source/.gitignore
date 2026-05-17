@@ -1,0 +1,33 @@
+# Composer dependencies (restore with: composer install)
+/vendor/
+
+# Uploaded user files — do not commit real uploads
+/public/uploads/notes/*
+/public/uploads/avatars/*
+!/public/uploads/notes/.gitkeep
+!/public/uploads/avatars/.gitkeep
+
+# Environment / secrets
+.env
+.env.*
+
+# PHP error logs
+*.log
+/php_error.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node (not used, but safety net)
+node_modules/
+
+# Build artifacts
+*.cache
