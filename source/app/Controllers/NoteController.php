@@ -123,7 +123,10 @@ class NoteController extends Controller
         $https    = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
                  || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
         $wsHost   = strtok($_SERVER['HTTP_HOST'] ?? 'localhost', ':');
-        $wsUrl    = ($https ? 'wss' : 'ws') . '://' . $wsHost . ':' . WS_PORT;
+        // Only enable WebSocket on local dev — shared hosting cannot run a persistent WS process
+        $wsUrl    = (APP_ENV !== 'production')
+                    ? ($https ? 'wss' : 'ws') . '://' . $wsHost . ':' . WS_PORT
+                    : null;
 
         $this->view('notes.editor', [
             'pageTitle'      => htmlspecialchars($note['title']),
